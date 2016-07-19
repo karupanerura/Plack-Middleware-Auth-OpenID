@@ -52,6 +52,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/karupanerura/Plack-Middleware-Auth-OpenID/issues"
+      },
+      "homepage" : "https://github.com/karupanerura/Plack-Middleware-Auth-OpenID",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/karupanerura/Plack-Middleware-Auth-OpenID.git",
+         "web" : "https://github.com/karupanerura/Plack-Middleware-Auth-OpenID"
+      }
+   },
    "version" : "0.01",
    "x_authority" : "cpan:KARUPA",
    "x_serialization_backend" : "JSON::PP version 2.27300"
