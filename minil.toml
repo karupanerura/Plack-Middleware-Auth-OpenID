@@ -1,0 +1,6 @@
+name = "Plack-Middleware-Auth-OpenID"
+# badges = ["travis"]
+authority="cpan:KARUPA"
+
+module_maker="ModuleBuildTiny"
+
