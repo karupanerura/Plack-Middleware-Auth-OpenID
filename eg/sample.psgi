@@ -20,9 +20,9 @@ my $app = sub {
 <html>
   <head><title>OpenID Test</title></head>
   <body>
-    <form method="POST" action="/openid/authorize">
+    <form method="POST" action="/openid/authenticate">
       <label>URL: <input type="url" name="open_id" /></label>
-      <input type="submit" value="Authorize" />
+      <input type="submit" value="Authenticate" />
     </form>
     <pre>@{[ dumper($env) ]}</pre>
   </body>
