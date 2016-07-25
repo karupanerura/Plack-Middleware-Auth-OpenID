@@ -11,6 +11,11 @@ use Plack::Middleware::Auth::OpenID;
 use Plack::Request;
 use HTTP::Message::PSGI ();
 
+our $APP = sub {
+    my $env = shift;
+    return [200, [], [$env->{REQUEST_METHOD}.' '.$env->{PATH_INFO}]];
+};
+
 sub _on_verified { __PACKAGE__->builder->ok(1, "VERIFIED: ".$_[1]->url) }
 sub _on_error    { pop->(400, [], ["ERROR: $_[2]"]) }
 
@@ -29,10 +34,7 @@ sub create_middleware {
 
 sub create_app {
     my $class = shift;
-    return $class->create_middleware(@_)->wrap(sub {
-        my $env = shift;
-        return [200, [], [$env->{REQUEST_METHOD}.' '.$env->{PATH_INFO}]];
-    });
+    return $class->create_middleware(@_)->wrap($APP);
 }
 
 sub mock_for_open_id_v2 {

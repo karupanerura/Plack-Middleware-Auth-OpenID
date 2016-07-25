@@ -34,13 +34,13 @@ subtest 'prepare_app' => sub {
     subtest 'set default' => sub {
         my $middleware = Plack::Middleware::Auth::OpenID->new(origin => 'http://localhost/', on_verified => \&abstract_sub, on_error => \&abstract_sub);
         $middleware->prepare_app;
-        for my $param (qw/openid_param authorize_path callback_path callback_path/) {
+        for my $param (qw/openid_param authenticate_path callback_path callback_path/) {
             ok defined $middleware->$param, "param: $param";
         }
     };
 
     subtest 'no override specified value' => sub {
-        for my $param (qw/openid_param authorize_path callback_path callback_path/) {
+        for my $param (qw/openid_param authenticate_path callback_path callback_path/) {
             my $value = "value:$param";
             my $middleware = Plack::Middleware::Auth::OpenID->new(origin => 'http://localhost/', on_verified => \&abstract_sub, on_error => \&abstract_sub, $param => $value);
             $middleware->prepare_app;
@@ -85,7 +85,7 @@ subtest 'end to end' => sub {
         };
 
         subtest 'method not allowed' => sub {
-            is $cb->(GET '/openid/authorize')->code, 405, 'GET /openid/authorize';
+            is $cb->(GET '/openid/authenticate')->code, 405, 'GET /openid/authenticate';
             is $cb->(POST '/openid/callback')->code, 405, 'POST /openid/callback';
         };
     };

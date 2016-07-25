@@ -12,7 +12,7 @@ my $app = t::Util->create_app();
 local our $HANDLER;
 
 no warnings qw/redefine/;
-local *Plack::Middleware::Auth::OpenID::handle_authorize = sub { $HANDLER = 'authorize'; [200, [], ['OK']] };
+local *Plack::Middleware::Auth::OpenID::handle_authenticate = sub { $HANDLER = 'authenticate'; [200, [], ['OK']] };
 local *Plack::Middleware::Auth::OpenID::handle_callback  = sub { $HANDLER = 'callback';  [200, [], ['OK']] };
 use warnings qw/redefine/;
 
@@ -28,10 +28,10 @@ subtest 'default' => sub {
             is $HANDLER, undef;
         };
 
-        subtest 'authorize' => sub {
+        subtest 'authenticate' => sub {
             local $HANDLER;
-            $cb->(GET '/openid/authorize');
-            is $HANDLER, 'authorize';
+            $cb->(GET '/openid/authenticate');
+            is $HANDLER, 'authenticate';
         };
 
         subtest 'callback' => sub {
@@ -44,7 +44,7 @@ subtest 'default' => sub {
 
 subtest 'customize' => sub {
     my $app = t::Util->create_app(
-        authorize_path => '/test/openid/authorize',
+        authenticate_path => '/test/openid/authenticate',
         callback_path  => '/test/openid/callback',
     );
 
@@ -53,16 +53,16 @@ subtest 'customize' => sub {
 
         subtest 'passthrough' => sub {
             local $HANDLER;
-            $cb->(GET '/openid/authorize');
+            $cb->(GET '/openid/authenticate');
             is $HANDLER, undef;
             $cb->(GET '/openid/callback');
             is $HANDLER, undef;
         };
 
-        subtest 'authorize' => sub {
+        subtest 'authenticate' => sub {
             local $HANDLER;
-            $cb->(GET '/test/openid/authorize');
-            is $HANDLER, 'authorize';
+            $cb->(GET '/test/openid/authenticate');
+            is $HANDLER, 'authenticate';
         };
 
         subtest 'callback' => sub {

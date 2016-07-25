@@ -6,7 +6,7 @@ use warnings;
 our $VERSION = "0.01";
 
 use parent qw/Plack::Middleware/;
-use Plack::Util::Accessor qw/openid_param delayed_return origin authorize_path callback_path cancel_path on_verified on_error/;
+use Plack::Util::Accessor qw/openid_param delayed_return origin authenticate_path callback_path cancel_path on_verified on_error/;
 use Plack::Util::Accessor grep !/^(?:args|required_root)$/, keys %Net::OpenID::Consumer::FIELDS;
 
 use Scalar::Util qw/blessed/;
@@ -21,8 +21,8 @@ sub prepare_app {
     unless ($self->openid_param) {
         $self->openid_param('open_id');
     }
-    unless ($self->authorize_path) {
-        $self->authorize_path('/openid/authorize');
+    unless ($self->authenticate_path) {
+        $self->authenticate_path('/openid/authenticate');
     }
     unless ($self->callback_path) {
         $self->callback_path('/openid/callback');
@@ -63,8 +63,8 @@ sub _make_csr {
 sub call {
     my ($self, $env) = @_;
 
-    if ($env->{PATH_INFO} eq $self->authorize_path) {
-        return $self->handle_authorize($env);
+    if ($env->{PATH_INFO} eq $self->authenticate_path) {
+        return $self->handle_authenticate($env);
     }
     elsif ($env->{PATH_INFO} eq $self->callback_path) {
         my $res = $self->handle_callback($env);
@@ -74,7 +74,7 @@ sub call {
     return $self->app->($env);
 }
 
-sub handle_authorize {
+sub handle_authenticate {
     my ($self, $env) = @_;
     return $self->res_405 if $env->{REQUEST_METHOD} ne 'POST';
 
