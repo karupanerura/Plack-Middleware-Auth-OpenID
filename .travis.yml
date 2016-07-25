@@ -1,6 +1,11 @@
 language: perl
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - libgmp-dev
+
 perl:
   - "5.10"
   - "5.12"
