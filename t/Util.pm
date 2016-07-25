@@ -12,7 +12,7 @@ use Plack::Request;
 use HTTP::Message::PSGI ();
 
 sub _on_verified { __PACKAGE__->builder->ok(1, "VERIFIED: ".$_[1]->url) }
-sub _on_error    { die "ERROR: $_[2]" }
+sub _on_error    { pop->(400, [], ["ERROR: $_[2]"]) }
 
 sub create_middleware {
     my ($class, %args) = @_;
@@ -36,6 +36,14 @@ sub create_app {
 }
 
 sub mock_for_open_id_v2 {
+    Test::Mock::LWP::Conditional->stub_request(
+        "http://example.com/invalid_open_id" => sub {
+            my $req = shift;
+            my $res = HTTP::Response->new(404);
+            $res->request($req);
+            return $res;
+        },
+    );
     Test::Mock::LWP::Conditional->stub_request(
         "http://example.com/open_id" => sub {
             my $req = shift;

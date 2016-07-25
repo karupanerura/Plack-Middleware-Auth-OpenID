@@ -73,4 +73,18 @@ subtest 'customize' => sub {
     };
 };
 
+
+subtest 'callback passthrough' => sub {
+    my $app = t::Util->create_app();
+
+    no warnings qw/redefine/;
+    local *Plack::Middleware::Auth::OpenID::handle_callback  = sub { undef };
+    use warnings qw/redefine/;
+
+    test_psgi $app => sub {
+        my $cb = shift;
+        is $cb->(GET '/openid/callback')->content, 'GET /openid/callback';
+    };
+};
+
 done_testing;

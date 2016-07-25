@@ -82,9 +82,13 @@ sub handle_authorize {
     my Net::OpenID::Consumer $csr = $self->_make_csr($req);
 
     my $open_id = $req->parameters->get($self->openid_param);
+    unless (defined $open_id) {
+        return $self->res_400("parameter @{[ $self->openid_param ]} is required");
+    }
+
     my Net::OpenID::ClaimedIdentity $claimed_identity = $csr->claimed_identity($open_id);
     unless ($claimed_identity) {
-        die "not actually an openid?  " . $csr->err;
+        return $self->res_400("not actually an openid?  " . $csr->err);
     }
 
     my $redirect_url = $claimed_identity->check_url(
