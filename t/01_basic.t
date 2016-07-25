@@ -4,24 +4,90 @@ use warnings;
 use Test::More;
 use Plack::Test;
 use HTTP::Request::Common;
+use Plack::Middleware::Auth::OpenID;
+use Scalar::Util qw/refaddr/;
 
 use t::Util;
 
-my $app = t::Util->create_app();
+sub abstract_sub { die 'no reach here' }
 
-test_psgi $app => sub {
-    my $cb = shift;
+subtest 'prepare_app' => sub {
+    subtest 'check required parameter' => sub {
+        my %param = (
+            origin      => 'http://localhost/',
+            on_verified => \&abstract_sub,
+            on_error    => \&abstract_sub
+        );
 
-    subtest 'passthrogth' => sub {
-        is $cb->(GET '/')->content,              'GET /';
-        is $cb->(POST '/')->content,             'POST /';
-        is $cb->(GET '/path/to/hoge')->content,  'GET /path/to/hoge';
-        is $cb->(POST '/path/to/hoge')->content, 'POST /path/to/hoge';
+        my %args;
+        for my $key (qw/origin on_verified on_error/) {
+            eval { Plack::Middleware::Auth::OpenID->new(%args)->prepare_app };
+            like $@, qr!^no required parameter: $key\b!, "$key is required"
+                or diag "$@";
+            $args{$key} = $param{$key};
+        }
+
+        eval { Plack::Middleware::Auth::OpenID->new(%args)->prepare_app };
+        is $@, '', 'all required parameter is specified';
     };
 
-    subtest 'method not allowed' => sub {
-        is $cb->(GET '/openid/authorize')->code, 405;
-        is $cb->(POST '/openid/callback')->code, 405;
+    subtest 'set default' => sub {
+        my $middleware = Plack::Middleware::Auth::OpenID->new(origin => 'http://localhost/', on_verified => \&abstract_sub, on_error => \&abstract_sub);
+        $middleware->prepare_app;
+        for my $param (qw/openid_param authorize_path callback_path callback_path/) {
+            ok defined $middleware->$param, "param: $param";
+        }
+    };
+
+    subtest 'no override specified value' => sub {
+        for my $param (qw/openid_param authorize_path callback_path callback_path/) {
+            my $value = "value:$param";
+            my $middleware = Plack::Middleware::Auth::OpenID->new(origin => 'http://localhost/', on_verified => \&abstract_sub, on_error => \&abstract_sub, $param => $value);
+            $middleware->prepare_app;
+            is $middleware->$param, $value, "param: $param";
+        }
+    };
+
+    subtest 'inflate origin from string' => sub {
+        my $middleware = Plack::Middleware::Auth::OpenID->new(origin => 'http://localhost/', on_verified => \&abstract_sub, on_error => \&abstract_sub);
+        $middleware->prepare_app;
+        isa_ok $middleware->origin, 'URI';
+    };
+
+    subtest 'no inflate origin from URI object' => sub {
+        my $origin = URI->new('http://localhost/');
+        my $middleware = Plack::Middleware::Auth::OpenID->new(origin => $origin, on_verified => \&abstract_sub, on_error => \&abstract_sub);
+        $middleware->prepare_app;
+        isa_ok $middleware->origin, 'URI';
+        is refaddr($middleware->origin), refaddr($origin), 'same address';
+    };
+};
+
+subtest 'callback_url' => sub {
+    my $middleware = t::Util->create_middleware();
+    $middleware->prepare_app();
+
+    my $callback_url = $middleware->callback_url;
+    isa_ok $callback_url, 'URI';
+    is $callback_url->path_query, $middleware->callback_path, 'path_qeury is correct';
+};
+
+subtest 'end to end' => sub {
+    my $app = t::Util->create_app();
+    test_psgi $app => sub {
+        my $cb = shift;
+
+        subtest 'passthrogth' => sub {
+            is $cb->(GET '/')->content,              'GET /', 'GET /';
+            is $cb->(POST '/')->content,             'POST /', 'POST /';
+            is $cb->(GET '/path/to/hoge')->content,  'GET /path/to/hoge', 'GET /path/to/hoge';
+            is $cb->(POST '/path/to/hoge')->content, 'POST /path/to/hoge', 'POST /path/to/hoge';
+        };
+
+        subtest 'method not allowed' => sub {
+            is $cb->(GET '/openid/authorize')->code, 405, 'GET /openid/authorize';
+            is $cb->(POST '/openid/callback')->code, 405, 'POST /openid/callback';
+        };
     };
 };
 

@@ -160,15 +160,6 @@ sub res_405 {
     ];
 }
 
-sub res_500 {
-    my ($self, $message) = @_;
-    return [
-        500,
-        ['Content-Type' => 'text/plain'],
-        [$message || 'Internal Server Error'],
-    ];
-}
-
 1;
 __END__
 

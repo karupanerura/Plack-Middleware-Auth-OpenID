@@ -12,9 +12,9 @@ use Plack::Request;
 use HTTP::Message::PSGI ();
 
 sub _on_verified { __PACKAGE__->builder->ok(1, "VERIFIED: ".$_[1]->url) }
-sub _on_error    { __PACKAGE__->builder->ok(0, "ERROR: $_[2]") }
+sub _on_error    { die "ERROR: $_[2]" }
 
-sub create_app {
+sub create_middleware {
     my ($class, %args) = @_;
     return Plack::Middleware::Auth::OpenID->new(
         consumer_secret => 'DUMMY CONSUMER SECRET',
@@ -24,7 +24,12 @@ sub create_app {
         on_error        => \&_on_error,
         debug           => sub { __PACKAGE__->builder->note(@_) },
         %args,
-    )->wrap(sub {
+    );
+}
+
+sub create_app {
+    my $class = shift;
+    return $class->create_middleware(@_)->wrap(sub {
         my $env = shift;
         return [200, [], [$env->{REQUEST_METHOD}.' '.$env->{PATH_INFO}]];
     });
