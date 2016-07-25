@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/karupanerura/Plack-Middleware-Auth-OpenID.svg?branch=master)](https://travis-ci.org/karupanerura/Plack-Middleware-Auth-OpenID) [![Coverage Status](http://codecov.io/github/karupanerura/Plack-Middleware-Auth-OpenID/coverage.svg?branch=master)](https://codecov.io/github/karupanerura/Plack-Middleware-Auth-OpenID?branch=master)
 # NAME
 
 Plack::Middleware::Auth::OpenID - It's new $module
