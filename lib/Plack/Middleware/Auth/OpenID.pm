@@ -7,12 +7,13 @@ our $VERSION = "0.01";
 
 use parent qw/Plack::Middleware/;
 use Plack::Util::Accessor qw/openid_param delayed_return origin authenticate_path callback_path cancel_path on_verified on_error/;
+
+use Net::OpenID::Consumer;
 use Plack::Util::Accessor grep !/^(?:args|required_root)$/, keys %Net::OpenID::Consumer::FIELDS;
 
 use Scalar::Util qw/blessed/;
 use URI;
 use Plack::Request;
-use Net::OpenID::Consumer;
 
 sub prepare_app {
     my $self = shift;
@@ -171,7 +172,7 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::Auth::OpenID - It's new $module
+Plack::Middleware::Auth::OpenID -  authentication by Open ID in PSGI app
 
 =head1 SYNOPSIS
 
@@ -186,9 +187,6 @@ Plack::Middleware::Auth::OpenID - It's new $module
             consumer_secret => '...',
             cache => Cache::Memcached::Fast->new(...),
             origin => 'https://example.com/',
-            ua => LWPx::ParanoidAgent->new(
-                whitelisted_hosts => [qw/hoge.net/],
-            ),
             on_verified => sub {
                 my ($env, $vident, $respond) = @_;
                 my $session = Plack::Session->new($env);
